@@ -172,6 +172,10 @@ def admin_ui(user_id):
             select = input("请输入读者 ID 删除用户并归还所有借阅的书（输入0返回上一级）：")
             if select == "0":
                 break
+            elif select == "1000":
+                print("--------------------------------")
+                print("       不能删除管理员账户！      ")
+                break
             else:
                 pass
             user_delete(select)
