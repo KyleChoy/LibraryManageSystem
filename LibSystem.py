@@ -35,6 +35,7 @@ def login():
         choice = input("请输入序号：")
         if choice == '1':
             user_id = input("请输入您的 ID：")
+            # fetchone 获得一个元组，一直执行可获取下一个结果，直至查不到时返回 None
             data = c.execute("select ReaderPassword from Reader where ReaderID='%s'" % user_id).fetchone()
             if data:
                 # 通过 .encode() 将其变成 Byte（Base64 只能加解密 Byte）
@@ -265,7 +266,7 @@ def book_return(user_id, admin):
             return
         else:
             pass
-        # 判断用户是否为管理员，若是不要求输入密码，反之跳过
+        # 判断用户是否为管理员，若不是则要求输入密码，反之跳过。
         if admin is False:
             user_password = input("请输入密码：").encode()
             user_password = base64.b64encode(user_password).decode("utf-8")
@@ -307,7 +308,7 @@ def add_book():
     book_author = input("请输入作者：")
     book_publisher = input("请输入出版社：")
     book_price = input("请输入单价（精确到一位小数）：")
-    book_date = input("请输入出版日期（如2020-6-24）：")
+    book_date = input("请输入出版日期（如2020-06-24）：")
     book_type = input("请输入书本类型：")
     book_state = input("请输入数量：")
     print("--------------------------------")
