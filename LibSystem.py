@@ -9,6 +9,7 @@ import base64
 import time
 
 
+# 数据库初始化函数
 def check_db():
     global connect
     global c
@@ -24,6 +25,7 @@ def check_db():
         print("--------------------------------")
 
 
+# 登录函数
 def login():
     global c
     print("---------图书馆管理系统---------")
@@ -35,6 +37,9 @@ def login():
             user_id = input("请输入您的 ID：")
             data = c.execute("select ReaderPassword from Reader where ReaderID='%s'" % user_id).fetchone()
             if data:
+                # 通过 .encode() 将其变成 Byte（Base64 只能加解密 Byte）
+                # 将用户输入的密码进行 Base64 加密，获得：b'base64编码内容'
+                # 使用 .decode("utf-8") 去掉b和单引号，以便与数据库中的密码进行对比
                 user_password = input("请输入您的密码：").encode()
                 user_password = base64.b64encode(user_password).decode("utf-8")
                 if user_password == data[0]:
@@ -57,6 +62,7 @@ def login():
             print("--------------------------------")
             print("用户列表：")
             c.execute("SELECT ReaderID, ReaderName, ReaderCollege, ReaderNumber from Reader")
+            # 使用 PrettyTable 获取数据，并更改表头后进行打印
             list_table = pretty_table.from_db_cursor(c)
             list_table.field_names = ["ID", "姓名", "学院", "学号"]
             print(list_table)
@@ -71,6 +77,7 @@ def login():
             print("--------------------------------")
 
 
+# 用户注册函数
 def register():
     global connect
     global c
@@ -88,6 +95,8 @@ def register():
     print("--------------------------------")
 
 
+# 用户选单界面
+# 使用 while 与 break 实现输入错误程序不退出的功能
 def user_ui(user_id):
     global connect
     global c
@@ -155,6 +164,7 @@ def user_ui(user_id):
             break
 
 
+# 管理员选单界面
 def admin_ui(user_id):
     global connect
     global c
@@ -220,6 +230,7 @@ def admin_ui(user_id):
             break
 
 
+# 密码更改函数
 def password_change(user_id):
     print("--------------------------------")
     user_password = input("请输入原密码：").encode()
@@ -238,6 +249,7 @@ def password_change(user_id):
         print("原密码错误，密码未更改！")
 
 
+# 图书归还函数
 def book_return(user_id, admin):
     global connect
     global c
@@ -253,6 +265,7 @@ def book_return(user_id, admin):
             return
         else:
             pass
+        # 判断用户是否为管理员，若是不要求输入密码，反之跳过
         if admin is False:
             user_password = input("请输入密码：").encode()
             user_password = base64.b64encode(user_password).decode("utf-8")
@@ -274,6 +287,7 @@ def book_return(user_id, admin):
         print("暂无已借阅的书籍。")
 
 
+# 图书删除函数
 def delete_book():
     global connect
     global c
@@ -285,6 +299,7 @@ def delete_book():
     print("已删除此书。")
 
 
+# 图书添加函数
 def add_book():
     global connect
     global c
@@ -304,6 +319,7 @@ def add_book():
     print("已添加此书。")
 
 
+# 用户删除函数
 def user_delete(user_id):
     global connect
     global c
@@ -313,6 +329,7 @@ def user_delete(user_id):
     password = base64.b64encode(password).decode("utf-8")
     if password == admin_password[0]:
         book_id = c.execute("SELECT BookID from Borrow where ReaderID='%s'" % user_id).fetchall()
+        # fetchall 返回多个元组，因而需要使用 for 循环遍历每一个元组
         for i in book_id:
             book_state = c.execute("SELECT BookState from Book where BookID='%s'" % i[0]).fetchone()
             book_state = book_state[0] + 1
@@ -327,15 +344,19 @@ def user_delete(user_id):
         print("管理员密码错误！")
 
 
+# 退出程序函数
 def quite():
     global connect
     connect.close()
+    # 断开数据库连接
     print("--------------------------------")
     print("感谢您的使用，再见！")
     print("--------------------------------")
     exit()
 
 
+# 主程序
+# 使用 while 与 break 配合实现输入出错后将用户带回选单界面
 if __name__ == '__main__':
     global connect
     global c
