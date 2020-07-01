@@ -38,7 +38,7 @@ def login():
         if choice == '1':
             user_id = input("请输入您的 ID：")
             # fetchone 获得一个元组，一直执行可获取下一个结果，直至查不到时返回 None
-            data = c.execute("select ReaderPassword from Reader where ReaderID='%s'" % user_id).fetchone()
+            data = c.execute("SELECT ReaderPassword from Reader where ReaderID='%s'" % user_id).fetchone()
             if data:
                 # 通过 .encode() 将其由 Str 变成 Byte（Base64 只能加解密 Byte）
                 # 将用户输入的密码进行 Base64 加密，获得：b'base64编码内容'
@@ -115,7 +115,7 @@ def user_ui(user_id):
     choice = input("请输入序号：")
     while True:
         if choice == "1":
-            c.execute("select * from Book")
+            c.execute("SELECT * from Book")
             book_table = pretty_table.from_db_cursor(c)
             book_table.field_names = ["ID", "书名", "作者", "出版社", "价格", "出版日期", "分类", "馆藏数"]
             print(book_table)
@@ -124,7 +124,7 @@ def user_ui(user_id):
                 break
             else:
                 # 检测输入的图书 ID 是否正确
-                check_id = c.execute("select BookID from Book where BookID='%s'" % book_id).fetchone()
+                check_id = c.execute("SELECT BookID from Book where BookID='%s'" % book_id).fetchone()
                 if not check_id:
                     print("--------------------------------")
                     print("         您输入的ID有误！        ")
@@ -133,7 +133,7 @@ def user_ui(user_id):
                 else:
                     pass
                 check_borrow = c.execute(
-                    "select BookID from Borrow where ReaderID='%s' AND BookID='%s'" % (user_id, book_id)).fetchone()
+                    "SELECT BookID from Borrow where ReaderID='%s' AND BookID='%s'" % (user_id, book_id)).fetchone()
                 if check_borrow:
                     # 禁止多次借阅相同书籍
                     print("--------------------------------")
@@ -142,7 +142,7 @@ def user_ui(user_id):
                     break
                 else:
                     pass
-            book_state = c.execute("select BookState from Book where BookID='%s'" % book_id).fetchone()
+            book_state = c.execute("SELECT BookState from Book where BookID='%s'" % book_id).fetchone()
             book_state = book_state[0]
             if book_state == 0:
                 # 馆藏数为 0 时禁止借阅
@@ -152,7 +152,7 @@ def user_ui(user_id):
                 break
             else:
                 book_state = book_state - 1
-            book_name = c.execute("select BookName from Book where BookID='%s'" % book_id).fetchone()
+            book_name = c.execute("SELECT BookName from Book where BookID='%s'" % book_id).fetchone()
             book_name = book_name[0]
             # 使用 time 获得系统当前日期作为借阅日期，格式为：年-月-日
             borrow_date = time.strftime("%Y-%m-%d", time.localtime())
@@ -210,7 +210,7 @@ def admin_ui(user_id):
             user_delete(select)
             break
         elif choice == "2":
-            c.execute("select * from Book")
+            c.execute("SELECT * from Book")
             book_table = pretty_table.from_db_cursor(c)
             book_table.field_names = ["ID", "书名", "作者", "出版社", "价格", "出版日期", "分类", "馆藏数"]
             print(book_table)
@@ -366,7 +366,7 @@ def user_delete(user_id):
     password = base64.b64encode(password).decode("utf-8")
     if password == admin_password[0]:
         book_id = c.execute("SELECT BookID from Borrow where ReaderID='%s'" % user_id).fetchall()
-        # fetchall 返回多个元组，因而需要使用 for 循环遍历每一个元组
+        # fetchall 返回由多个元组构成的列表，因而需要使用 for 循环遍历每一个元组
         for i in book_id:
             book_state = c.execute("SELECT BookState from Book where BookID='%s'" % i[0]).fetchone()
             book_state = book_state[0] + 1
