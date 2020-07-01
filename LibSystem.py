@@ -1,15 +1,16 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 # Author : 蔡楷 / Kyle
 import Packages.DBInit as DBInit
 import Packages.prettytable as pretty_table
-from os import path
 import sqlite3
 import base64
 import time
+from os import path
 
 
 # 数据库初始化函数
+# 若不存在数据库文件，则执行初始化程序
 def check_db():
     global connect
     global c
@@ -23,6 +24,7 @@ def check_db():
         print("--------------------------------")
         print("         数据库载入成功！        ")
         print("--------------------------------")
+    return connect, c
 
 
 # 登录函数
@@ -38,7 +40,7 @@ def login():
             # fetchone 获得一个元组，一直执行可获取下一个结果，直至查不到时返回 None
             data = c.execute("select ReaderPassword from Reader where ReaderID='%s'" % user_id).fetchone()
             if data:
-                # 通过 .encode() 将其变成 Byte（Base64 只能加解密 Byte）
+                # 通过 .encode() 将其由 Str 变成 Byte（Base64 只能加解密 Byte）
                 # 将用户输入的密码进行 Base64 加密，获得：b'base64编码内容'
                 # 使用 .decode("utf-8") 去掉b和单引号，以便与数据库中的密码进行对比
                 user_password = input("请输入您的密码：").encode()
@@ -50,11 +52,13 @@ def login():
                     print("--------------------------------")
                     print("            密码错误！           ")
                     print("--------------------------------")
+                    time.sleep(0.5)
                     continue
             else:
                 print("--------------------------------")
                 print("            ID 错误！           ")
                 print("--------------------------------")
+                time.sleep(0.5)
                 continue
             return user_id
         elif choice == "2":
@@ -76,6 +80,7 @@ def login():
             print("--------------------------------")
             print("            输入错误！          ")
             print("--------------------------------")
+            time.sleep(0.5)
 
 
 # 用户注册函数
@@ -94,6 +99,7 @@ def register():
     connect.commit()
     print("         用户创建成功！          ")
     print("--------------------------------")
+    time.sleep(0.5)
 
 
 # 用户选单界面
@@ -117,31 +123,38 @@ def user_ui(user_id):
             if book_id == "0":
                 break
             else:
+                # 检测输入的图书 ID 是否正确
                 check_id = c.execute("select BookID from Book where BookID='%s'" % book_id).fetchone()
                 if not check_id:
                     print("--------------------------------")
-                    print("         您输入的ID有误！         ")
+                    print("         您输入的ID有误！        ")
+                    time.sleep(0.5)
                     break
                 else:
                     pass
                 check_borrow = c.execute(
                     "select BookID from Borrow where ReaderID='%s' AND BookID='%s'" % (user_id, book_id)).fetchone()
                 if check_borrow:
+                    # 禁止多次借阅相同书籍
                     print("--------------------------------")
                     print("       抱歉，您已借阅此书！       ")
+                    time.sleep(0.5)
                     break
                 else:
                     pass
             book_state = c.execute("select BookState from Book where BookID='%s'" % book_id).fetchone()
             book_state = book_state[0]
             if book_state == 0:
+                # 馆藏数为 0 时禁止借阅
                 print("--------------------------------")
                 print("         抱歉，暂无此书！        ")
+                time.sleep(0.5)
                 break
             else:
                 book_state = book_state - 1
             book_name = c.execute("select BookName from Book where BookID='%s'" % book_id).fetchone()
             book_name = book_name[0]
+            # 使用 time 获得系统当前日期作为借阅日期，格式为：年-月-日
             borrow_date = time.strftime("%Y-%m-%d", time.localtime())
             c.execute("INSERT INTO Borrow (ReaderID, BookID, BookName, BorrowDate) VALUES ('%s','%s','%s','%s')" % (
                 user_id, book_id, book_name, borrow_date))
@@ -149,8 +162,10 @@ def user_ui(user_id):
             connect.commit()
             print("--------------------------------")
             print("          成功借阅该书。         ")
+            time.sleep(0.5)
             break
         elif choice == "2":
+            # 非管理员还书需要密码
             admin = False
             book_return(user_id, admin)
             break
@@ -161,7 +176,8 @@ def user_ui(user_id):
             quite()
         else:
             print("--------------------------------")
-            print("      输入有误，请重新输入！     ")
+            print("       输入有误，请重新输入！    ")
+            time.sleep(0.5)
             break
 
 
@@ -184,8 +200,10 @@ def admin_ui(user_id):
             if select == "0":
                 break
             elif select == "1000":
+                # 禁止删除管理员账号
                 print("--------------------------------")
                 print("       不能删除管理员账户！      ")
+                time.sleep(0.5)
                 break
             else:
                 pass
@@ -197,6 +215,7 @@ def admin_ui(user_id):
             book_table.field_names = ["ID", "书名", "作者", "出版社", "价格", "出版日期", "分类", "馆藏数"]
             print(book_table)
             print("1. 删除图书\n2. 添加图书\n3. 返回上一级")
+            print("--------------------------------")
             sub_choice = input("请输入序号：")
             if sub_choice == "1":
                 delete_book()
@@ -207,7 +226,9 @@ def admin_ui(user_id):
             elif sub_choice == "3":
                 break
             else:
-                print("输入有误！")
+                print("--------------------------------")
+                print("            输入有误！          ")
+                time.sleep(0.5)
                 break
         elif choice == "3":
             c.execute("SELECT ReaderID, BookID, BookName, BorrowDate from Borrow")
@@ -219,6 +240,7 @@ def admin_ui(user_id):
                 break
             else:
                 pass
+            # 管理员替读者还书时不需要密码
             admin = True
             book_return(user_id, admin)
         elif choice == "4":
@@ -227,7 +249,9 @@ def admin_ui(user_id):
         elif choice == "5":
             quite()
         else:
-            print("输入有误！")
+            print("--------------------------------")
+            print("      输入有误，请重新输入！     ")
+            time.sleep(0.5)
             break
 
 
@@ -243,11 +267,12 @@ def password_change(user_id):
         c.execute("UPDATE Reader SET ReaderPassword='%s' where ReaderID='%s'" % (user_password, user_id))
         connect.commit()
         print("--------------------------------")
-        print("密码已成功修改，请重新登录！")
+        print("   密码已成功修改，请重新登录！   ")
         quite()
     else:
         print("--------------------------------")
-        print("原密码错误，密码未更改！")
+        print("      原密码错误，密码未更改！    ")
+        time.sleep(0.5)
 
 
 # 图书归还函数
@@ -279,13 +304,16 @@ def book_return(user_id, admin):
             c.execute("UPDATE Book SET BookState='%s' where BookID='%s'" % (book_state, book_id))
             connect.commit()
             print("--------------------------------")
-            print("已归还图书。")
+            print("           已归还图书。          ")
+            time.sleep(0.5)
         else:
             print("--------------------------------")
-            print("密码错误，图书未归还！")
+            print("      密码错误，图书未归还！     ")
+            time.sleep(0.5)
     else:
         print("--------------------------------")
-        print("暂无已借阅的书籍。")
+        print("        暂无已借阅的书籍。       ")
+        time.sleep(0.5)
 
 
 # 图书删除函数
@@ -293,18 +321,25 @@ def delete_book():
     global connect
     global c
     book_id = input("请输入图书 ID：")
+    # 删除 Borrow 和 Book 里相应的行
     c.execute("DELETE from Borrow where BookID='%s'" % book_id)
     c.execute("DELETE from Book where BookID='%s'" % book_id)
     connect.commit()
     print("--------------------------------")
-    print("已删除此书。")
+    print("           已删除此书。          ")
+    time.sleep(0.5)
 
 
 # 图书添加函数
 def add_book():
     global connect
     global c
-    book_name = input("请输入书本名称：")
+    print("--------------------------------")
+    book_name = input("请输入书本名称（输入0取消添加书本）：")
+    if book_name == "0":
+        return
+    else:
+        pass
     book_author = input("请输入作者：")
     book_publisher = input("请输入出版社：")
     book_price = input("请输入单价（精确到一位小数）：")
@@ -317,7 +352,8 @@ def add_book():
         "'%s','%s','%s','%s','%s','%s','%s')" % (
             book_name, book_author, book_publisher, book_price, book_date, book_type, book_state))
     connect.commit()
-    print("已添加此书。")
+    print("           已添加此书。          ")
+    time.sleep(0.5)
 
 
 # 用户删除函数
@@ -340,18 +376,20 @@ def user_delete(user_id):
         connect.commit()
         print("--------------------------------")
         print("           用户已删除！          ")
+        time.sleep(0.5)
     else:
         print("--------------------------------")
-        print("管理员密码错误！")
+        print("         管理员密码错误！        ")
+        time.sleep(0.5)
 
 
 # 退出程序函数
 def quite():
     global connect
-    connect.close()
     # 断开数据库连接
+    connect.close()
     print("--------------------------------")
-    print("感谢您的使用，再见！")
+    print("       感谢您的使用，再见！      ")
     print("--------------------------------")
     exit()
 
@@ -359,9 +397,7 @@ def quite():
 # 主程序
 # 使用 while 与 break 配合实现输入出错后将用户带回选单界面
 if __name__ == '__main__':
-    global connect
-    global c
-    check_db()
+    connect, c = check_db()
     person = login()
     while True:
         if person == "1000":

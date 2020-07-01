@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 # Author : 蔡楷 / Kyle
 import sqlite3
 
@@ -9,6 +9,7 @@ def create_table():
     print(" 未检测到数据库文件，正在初始化... ")
     connect = sqlite3.connect("LibSystem.db")
     c = connect.cursor()
+    # 新建三个表单 Book, Reader, Borrow 分别存储书本信息、读者信息和借阅信息
     c.execute('''CREATE TABLE Book(
     BookID INTEGER PRIMARY KEY AUTOINCREMENT,
     BookName TEXT,
@@ -33,7 +34,8 @@ def create_table():
     BookName TEXT,
     BorrowDate TEXT
     );''')
-    books = ((1, u"数据结构与算法分析", u"冯舜玺", u"机械工业出版社", 35.00, u"2004-1-1", u"计算机",  5),
+    # 新建一个对应表单内容的元组并使用 for 循环进行写入
+    books = ((1, u"数据结构与算法分析", u"冯舜玺", u"机械工业出版社", 35.00, u"2004-01-01", u"计算机",  5),
              (2, u"流畅的Python", u"安道 / 吴珂", u"人民邮电出版社", 139.00, u"2017-05-15", u"计算机", 10),
              (3, u"你当像鸟飞往你的山", u"任爱红", u"南海出版公司", 59.00, u"2019-10-20", u"教育", 5),
              (4, u"天才基本法", u"长洱", u"江苏凤凰文艺出版社", 78.00, u"2019-07-01", u"成长", 7),
@@ -46,12 +48,11 @@ def create_table():
     readers = ((1000, u"Admin", u"YWRtaW4=", u"新闻与传播学院", u"2019000000"),
                (1001, u"陈一", u"MTIzNDU2", u"新闻与传播学院", u"2019000001"),
                (1002, u"王二", u"MTIzNDU2", u"计算机学院", u"2019000002"),
-               (1003, u"刘三", u"MTIzNDU2", u"艺术学院", u"2019000003"),
-               (1004, u"陈一明", u"MTIzNDU2", u"文学院", u"2019000004"),
-               (1005, u"张三", u"MTIzNDU2", u"文学院", u"2019000005"),
-               (1006, u"何明", u"MTIzNDU2", u"文学院", u"2019000006"),
-               (1007, u"陈中", u"MTIzNDU2", u"数学学院", u"2019000007"),
-               (1008, u"黄六", u"MTIzNDU2", u"体育学院", u"2019000008"))
+               (1003, u"张三", u"MTIzNDU2", u"艺术学院", u"2019000003"),
+               (1004, u"李四", u"MTIzNDU2", u"文学院", u"2019000004"),
+               (1005, u"周五", u"MTIzNDU2", u"文学院", u"2019000005"),
+               (1006, u"黄六", u"MTIzNDU2", u"文学院", u"2019000006"),
+               (1007, u"霸天", u"MTIzNDU2", u"体育学院", u"2019000008"))
     for r in readers:
         c.execute("INSERT INTO Reader VALUES (?,?,?,?,?)", r)
     borrows = ((1, 1001, 1, u"数据结构与算法分析", u"2018-01-05"),
@@ -70,6 +71,7 @@ def create_table():
     print("--------------------------------")
     print("        数据库初始化成功！       ")
     print("--------------------------------")
+    # 断开数据库连接
     connect.close()
 
 
